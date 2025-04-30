@@ -72,41 +72,26 @@ int main() {
         Vector2d pOrigin = points2D[idxOrigin];
         Vector2d pEnd    = points2D[idxEnd];
         double length = computeDistance2D(pOrigin, pEnd);
-        // L'edge deve avere lunghezza maggiore di epsilon (non degenerato)
         assert(length > epsilon);
     }
-
-    // 2.4. Verifica che ogni poligono (cellule 2D) abbia area non nulla.
-    // Si presuppone che "mesh.Cell2Ds" sia un vettore di strutture che possieda
-    // il membro "Vertices", un vettore di interi che indica gli indici dei punti.
     for (const auto& polygon : mesh.Cell2Ds) {
         vector<Vector2d> polyVertices;
-        // Costruiamo il vettore dei punti del poligono (in ordine)
         for (unsigned int idx : polygon.Vertices) {
             polyVertices.push_back(points2D[idx]);
         }
         double area = computePolygonArea(polyVertices);
-        // L'area del poligono deve essere maggiore di epsilon
         assert(area > epsilon);
     }
 
     cout << "Tutti i test sul mesh sono stati superati correttamente." << endl;
 
-    // -------------------------------------------------------------------
-    // 3. Esportazione dei Dati tramite UCDUtilities
-    // -------------------------------------------------------------------
-
-    // Creiamo l'oggetto UCDUtilities per esportare i file.
     Gedim::UCDUtilities utilities;
 
-    // 3.1. Esportazione dei punti (Cell0Ds)
-    // Per esempio, esportiamo una proprietà "Marker" per ciascun punto.
     vector<Gedim::UCDProperty<double>> pointProperties(1);
     pointProperties[0].Label = "Marker";
     pointProperties[0].UnitLabel = "-";
     pointProperties[0].NumComponents = 1;
-    
-    // Costruiamo un vettore di marker (numero di punti = mesh.NumCell0Ds).
+
     vector<double> pointMarkers(mesh.NumCell0Ds, 0.0);
     for (const auto& entry : mesh.MarkerCell0Ds) {
         int marker = entry.first;
@@ -117,10 +102,8 @@ int main() {
     }
     pointProperties[0].Data = pointMarkers.data();
 
-    // Esportiamo i punti nel file "Cell0Ds.inp"
     utilities.ExportPoints("./Cell0Ds.inp", mesh.Cell0DsCoordinates, pointProperties);
 
-    // 3.2. Esportazione dei segmenti (Cell1Ds)
     vector<Gedim::UCDProperty<double>> segProperties(1);
     segProperties[0].Label = "Marker";
     segProperties[0].UnitLabel = "-";
@@ -136,9 +119,6 @@ int main() {
     }
     segProperties[0].Data = segMarkers.data();
 
-    // Esportiamo i segmenti nel file "Cell1Ds.inp".
-    // Il metodo ExportSegments utilizza la matrice dei punti, la matrice degli estremi
-    // e, in questo esempio, nessuna proprietà aggiuntiva per i punti.
     utilities.ExportSegments("./Cell1Ds.inp", mesh.Cell0DsCoordinates, mesh.Cell1DsExtrema, {}, segProperties);
 
     cout << "Esportazione completata." << endl;
